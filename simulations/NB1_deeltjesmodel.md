@@ -65,9 +65,10 @@ plt.ylabel('$x$(m)')
 
 plt.plot(t,x_1,'r.', markersize=1, label='fietser 1')
 plt.plot(t,x_2,'b.', markersize=1, label='fietser 2')
-
+plt.legend()
 plt.show()
 
+print(max(x_1),max(x_2))
 
 ```
 
@@ -82,6 +83,47 @@ Maak het tijdsinterval $dt$ groter en vergelijk de afgelegde weg in de tien seco
 
 ```python
 %reset -f  #clears memory as we don't need it further down 
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Beginwaarden
+dt = 1          #s
+t_e = 10                   #s
+N = int(t_e/dt)+1
+t = np.arange(0,t_e+dt,dt) #s
+
+# fietser 1
+x_1 = np.zeros(N)          #m     maakt array van lengte N met alleen maar waarde 0.
+v_1 = 5                    #m/s
+
+# fietser 2
+x_2 = np.zeros(N)          #m     
+v_2 = np.zeros(N)          #m/s     
+a_2 = .5                   #m/s^2     
+
+# Uitvoeren van de simulatie
+for i in range(0,N-1):
+    x_1[i+1] = x_1[i] + v_1*dt
+    
+    x_2[i+1] = x_2[i] + v_2[i]*dt
+    v_2[i+1] = v_2[i] + a_2*dt
+
+# Plotten van de gegevens.    
+plt.figure()
+
+plt.xlabel('$t$(s)')
+plt.ylabel('$x$(m)')
+
+plt.plot(t,x_1,'r.', markersize=1, label='fietser 1')
+plt.plot(t,x_2,'b.', markersize=1, label='fietser 2')
+plt.legend()
+plt.show()
+
+print(max(x_1),max(x_2))
+
+#Bij een grotoere waarde van dt wordt de uiteindelijk berekende afstand voor de versnellende fietser (fietser 2) kleiner dan de werkelijke waarde. Dit komt omdat we de euler methode gebruiken voor het berekenen van de afgelegde afstand.
+#Bij een dt van bijv. 1 seconde neemt het voor de hele seconde de snelheid aan die de fietser op het begin van de seconde had terwijl dat niet zo is.
 ```
 
 ## Naar een deeltjesmodel
@@ -184,6 +226,8 @@ Voorspel en controleer vervolgens met onderstaande code.
 import numpy as np
 import matplotlib.pyplot as plt
 
+#mijn voorspelling is dat de de posities van alle deeltjes zich op de y-as begeven met een waarde van 0-3 op de x-as.
+
 plt.figure()
 for particle in particle_array:
     plt.plot(particle.r[0],particle.r[1],'k.')
@@ -230,6 +274,24 @@ En als je wilt gaan voor een uitdaging:
 
 ```python
 ### YOUR CODE HERE ###
+particle_array_ex4 = []
+i = 0
+
+v_ex4 = np.random.randint(-5,6,10)
+start_x_ex4 = np.random.randint(0,101,10)
+
+for i in range(10):
+    particle_array_ex4.append(ParticleClass(m=1.0, v=[v_ex4[i], 0.5], r=[start_x_ex4[i], 0.0],R=1.0))
+
+plt.figure()
+for particle in particle_array_ex4:
+    plt.plot(particle.r[0],particle.r[1],'.''k')
+for particle in particle_array_ex4:
+    particle.update_position(2.0)
+for particle in particle_array_ex4:
+    plt.plot(particle.r[0],particle.r[1],'.''k')
+plt.show()
+
 ```
 
 Onze simulaties worden snel “zwaar”. Er moeten veel berekeningen gedaan worden en dat kost nu eenmaal tijd. Nu is het wel zo dat sommige berekeningen meer tijd kosten dan anderen. Om te kijken of een stukje code geoptimaliseerd kan worden, moeten we een timer maken. Dat kan met onderstaande code:
@@ -250,6 +312,16 @@ eind = time.time()
 lengte = eind - start
 
 print("Dit kostte ", lengte, "seconde!")
+
+#eigen code
+start_2 = time.time()
+array_2 = np.array([int(1e5)])
+
+eind_2 = time.time()
+lengte_2 = eind_2 - start_2
+
+print("Dit kostte ", lengte_2, "seconde!")
+print("Dit is ", lengte/lengte_2, "keer korter")
 ```
 
 Idealiter draaien we de bovenstaande code een aantal keer zodat we een goede schatting hebben van de rekentijd.
@@ -407,8 +479,12 @@ def init():
 def update(frame):
     particle.update_position()
     dot.set_data([particle.r[0]], [particle.r[1]])
+### YOUR CODE HERE ###
+    if particle.r[0] > 10:
+        particle.v[0] = particle.v[0]*-1
+    if particle.r[0] < -10:
+        particle.v[0] = particle.v[0]*-1
     return dot,
-
 # Create animation
 ani = FuncAnimation(fig, update, frames=range(200), init_func=init, blit=True, interval=50)
 
@@ -433,7 +509,11 @@ def update(frame):
     particle.update_position()
     dot.set_data([particle.r[0]], [particle.r[1]])
 ### YOUR CODE HERE ###
-    return dot,         
+    if particle.r[0] > 10:
+        particle.r[0] = -10
+    if particle.r[0] < -10:
+        particle.r[0] = 10
+    return dot,
 ```
 
 ```{exercise} Harde wanden
@@ -449,6 +529,10 @@ def update(frame):
     particle.update_position()
     dot.set_data([particle.r[0]], [particle.r[1]])
 ### YOUR CODE HERE ###
+    if particle.r[0] > 10:
+        particle.v[0] = particle.v[0]*-1
+    if particle.r[0] < -10:
+        particle.v[0] = particle.v[0]*-1
     return dot,
 ```
 
@@ -479,7 +563,23 @@ dot, = ax.plot([], [], 'ro', markersize=10);
 
 # Initialization function for animation
 def init():
-    dot.set_data([], [])
+    # doorlopende doos
+def update(frame):
+    particle.update_position()
+    dot.set_data([particle.r[0]], [particle.r[1]])
+### YOUR CODE HERE ###
+    if particle.r[0] > 10:
+        particle.v = particle.v*-1
+    if particle.r[0] < -10:
+        particle.v = particle.v*-1
+    if particle.r[0] > 10:
+        particle.v = particle.v*-1
+    if particle.r[1] < -10:
+        particle.v = particle.v*-1
+    return dot,
+    return dot,
+        particle.r[1] 
+    return dot,
     return dot,
 
 # Update function for each frame
