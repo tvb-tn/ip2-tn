@@ -629,7 +629,22 @@ class ParticleClass:
 # Simulation parameters
 dt = 0.1         # time step
 num_steps = 500  # number of time steps
-particle = ParticleClass(m=1.0, v=[5.0, 0], r=[0.0, 0.0],R=1.0)  
+a = np.array([0.0, -9.81])
+# Maken van de class met versnelling
+class ParticleClass:
+    def __init__(self, m, v, r, R):
+        self.m = m                         # mass of the particle
+        self.v = np.array(v, dtype=float)  # velocity vector
+        self.r = np.array(r, dtype=float)  # position vector
+        self.R = R                         # radius of the particle
+
+    def update_position(self):
+        self.r += self.v * dt
+    
+    def update_velocity(self, a):
+        self.v += a*dt
+
+particle = ParticleClass(m=1.0, v=[5.0, 0.0], r=[0.0, 5.0], R=1.0)
 ### YOUR CODE HERE ###
 # Create the figure and axis
 fig, ax = plt.subplots()
@@ -655,6 +670,14 @@ def update(frame):
     
     dot.set_data([particle.r[0]], [particle.r[1]])
     ### YOUR CODE HERE ###
+    if particle.r[0] > 10:
+        particle.v[0] = particle.v[0]*-1
+    if particle.r[0] < -10:
+        particle.v[0] = particle.v[0]*-1
+    if particle.r[1] > 10:
+        particle.v[1] = particle.v[1]*-1
+    if particle.r[1] < -10:
+        particle.v[1] = particle.v[1]*-1
     return dot,
 
 # Create animation
@@ -674,7 +697,7 @@ Herinner wat we in Q1 hebben gedaan bij de basics van een numerieke simulatie...
 ```
 
 ```{solution} ex-deeltjesmodel-6
-Jouw antwoord hier...
+Doordat er geen energie verloren gaat aan wrijving of aan botsen met de muren verliest de particle ook geen energie en dus ook hoogte.
 ```
 
 Een optie om de simulatie te verbeteren is de tijdstap $\Delta t$ kleiner te maken, maar dan hebben we ook meer geduld meer nodig - het aantal berekeningen schaalt met $\frac{1}{\Delta t}$. Een tweede optie is een meer directe oplossing: We weten dat $a = \mathrm{const.}$ en daarom weten we ook de bewegingsvergelijking van het deeltje!
