@@ -549,6 +549,8 @@ num_steps = 500  # number of time steps
 
 ### YOUR CODE HERE ###
 
+particle = ParticleClass(m=1.0, v=[5.0, 3], r=[0.0, 0.0],R=1.0)  
+
 # Create the figure and axis
 fig, ax = plt.subplots()
 ax.set_xlim(-10, 10)
@@ -563,30 +565,25 @@ dot, = ax.plot([], [], 'ro', markersize=10);
 
 # Initialization function for animation
 def init():
+    dot.set_data([], [])
+    return dot,
     # doorlopende doos
-def update(frame):
-    particle.update_position()
-    dot.set_data([particle.r[0]], [particle.r[1]])
 ### YOUR CODE HERE ###
-    if particle.r[0] > 10:
-        particle.v = particle.v*-1
-    if particle.r[0] < -10:
-        particle.v = particle.v*-1
-    if particle.r[0] > 10:
-        particle.v = particle.v*-1
-    if particle.r[1] < -10:
-        particle.v = particle.v*-1
-    return dot,
-    return dot,
-        particle.r[1] 
-    return dot,
-    return dot,
+
 
 # Update function for each frame
 def update(frame):
     particle.update_position()
     dot.set_data([particle.r[0]], [particle.r[1]])
     ### YOUR CODE HERE ###
+    if particle.r[0] > 10:
+        particle.v[0] = particle.v[0]*-1
+    if particle.r[0] < -10:
+        particle.v[0] = particle.v[0]*-1
+    if particle.r[1] > 10:
+        particle.v[1] = particle.v[1]*-1
+    if particle.r[1] < -10:
+        particle.v[1] = particle.v[1]*-1
     return dot,
 
 # Create animation
