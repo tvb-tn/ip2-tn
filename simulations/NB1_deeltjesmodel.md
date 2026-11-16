@@ -1047,7 +1047,7 @@ class ParticleClass:
 
 # Simulation parameters
 dt = 0.01         # time step
-num_steps = 530  # number of time steps
+num_steps = 5300  # number of time steps
 m1 = 1.0
 m2 = 50.0
 
@@ -1069,60 +1069,48 @@ dot, = ax.plot([], [], 'ro', markersize=10); # semicolon to suppress output
 
 counter = 0
 
-# Create the particle as a red dot
+counter = 0
+
 dotA, = ax.plot([], [], 'ro', markersize=10)
 dotB, = ax.plot([], [], 'bo', markersize=10)
 
 counter_text = ax.text(-9.5, 9, "")
 
-# Initialization function for animation
 def init():
-    dot.set_data([], [])
-    return dot,
+    dotA.set_data([], [])
+    dotB.set_data([], [])
+    return dotA, dotB, counter_text
 
-# Update function for each frame
 def update(frame):
     global counter
     particleA.update_position()
     particleB.update_position()
 
+    dr = particleA.r - particleB.r
+    dv = particleA.v - particleB.v
+
+    if particleA.collide_detection(particleB) and np.dot(dv, dr) < 0:
+        factor = 2 * np.dot(dv, dr) / ((particleA.m + particleB.m) * np.dot(dr, dr))
+        particleA.v = particleA.v - particleB.m * factor * dr
+        particleB.v = particleB.v + particleA.m * factor * dr
+        counter += 1
+
+    for p in (particleA, particleB):
+        if abs(p.r[0]) > 10 and p.r[0] * p.v[0] > 0:
+            p.v[0] = -p.v[0]
+            counter += 1
+        if abs(p.r[1]) > 10 and p.r[1] * p.v[1] > 0:
+            p.v[1] = -p.v[1]
+            counter += 1
+
     dotA.set_data([particleA.r[0]], [particleA.r[1]])
     dotB.set_data([particleB.r[0]], [particleB.r[1]])
-
     counter_text.set_text(f"Collisions: {counter}")
 
-    #collision detection and response
-    if particleA.collide_detection(particleB):
-        vA, vB, mA, mB, rA, rB = particleA.v, particleB.v, particleA.m, particleB.m, particleA.r, particleB.r
-        vA_new = vA - 2 * mB / (mA + mB) * np.dot(vA - vB, rA - rB) / (1e-12+np.linalg.norm(rA - rB))**2 * (rA - rB)
-        vB_new = vB - 2 * mA / (mA + mB) * np.dot(vB - vA, rB - rA) / (1e-12+np.linalg.norm(rB - rA))**2 * (rB - rA)
-        particleA.v = vA_new
-        particleB.v = vB_new
-        ### YOUR CODE HERE ###
-        counter += 1
+    return dotA, dotB, counter_text
 
-    # wall collision detection and response
-    if particleA.r[0]**2>100: # Check if particle is outside the bounds, np.abs could be used but is slower
-        particleA.v[0] = -particleA.v[0]
-        ### YOUR CODE HERE ###
-        counter += 1
-    if particleA.r[1]**2>100: 
-        particleA.v[1] = -particleA.v[1]
-        ### YOUR CODE HERE ###
-        counter += 1
-    dot.set_data([particleB.r[0]], [particleB.r[1]])
-    if particleB.r[0]**2>100: 
-        particleB.v[0] = -particleB.v[0]
-        counter += 1
-    if particleB.r[1]**2>100: 
-        particleB.v[1] = -particleB.v[1]
-        counter += 1
-    return dot, counter_text
+ani = FuncAnimation(fig, update, frames=range(num_steps), init_func=init, blit=True, interval=50)
 
-# Create animation
-ani = FuncAnimation(fig, update, frames=range(200), init_func=init, blit=True, interval=50)
-
-# For Jupyter notebook:
 from IPython.display import HTML
 HTML(ani.to_jshtml())
 ```
